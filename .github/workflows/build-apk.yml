@@ -32,41 +32,32 @@ jobs:
       run: |
         pip install --upgrade pip setuptools wheel
         pip install "cython>=3.0.0"
-        pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
+        pip install "buildozer==1.4.0" "python-for-android==2023.5.21" pygame==2.5.2
     
     - name: Configure Android
       run: |
         mkdir -p ~/.android
         echo "count=0" > ~/.android/repositories.cfg
-    
-    - name: Verify files
-      run: |
-        echo "=== Project files ==="
-        ls -la
-        echo "=== buildozer.spec content ==="
-        cat buildozer.spec
-        echo "=== main.py content ==="
-        cat main.py
+        yes | sdkmanager --licenses || true
     
     - name: Clean previous builds
       run: |
         rm -rf .buildozer bin
     
-    - name: Build APK with verbose output
+    - name: Build APK
       run: |
-        echo "=== Starting APK build ==="
-        buildozer android debug --verbose 2>&1 | tee build_output.txt
-        echo "=== Build finished ==="
+        buildozer android debug 2>&1 | tee build_output.txt
     
-    - name: List output
+    - name: Check build results
       run: |
-        echo "=== Listing output directories ==="
+        echo "=== Build directory listing ==="
+        ls -la
+        echo "=== bin directory ==="
         ls -la bin/ 2>/dev/null || echo "bin/ not found"
+        echo "=== .buildozer directory ==="
         ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ not found"
-        if [ -f build_output.txt ]; then
-          echo "=== Last 200 lines of build output ==="
-          tail -200 build_output.txt
-        fi
+        echo "=== Last 300 lines of build output ==="
+        tail -300 build_output.txt
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
