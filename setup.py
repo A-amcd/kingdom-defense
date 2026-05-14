@@ -1,17 +1,12 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name='kingdomdefense',
     version='0.1.0',
-    packages=find_packages(),
+    scripts=['main.py'],
     install_requires=[
         'pygame',
     ],
-    entry_points={
-        'console_scripts': [
-            'kingdomdefense=main:main',
-        ],
-    },
     include_package_data=True,
     zip_safe=False,
 )
