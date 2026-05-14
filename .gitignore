@@ -1,0 +1,60 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Android build
+bin/
+.buildozer/
+*.apk
+*.aab
+
+# Downloaded files
+*.zip
+*.tar.gz
+*.tar.bz2
+jdk-17.zip
+android-*.zip
+android-ndk-*.zip
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+temp/
+tmp/
