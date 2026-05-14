@@ -16,7 +16,7 @@ jobs:
     - name: Set up swap space
       uses: pierotofy/set-swap-space@master
       with:
-        swap-size-gb: 12
+        swap-size-gb: 16
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -26,7 +26,7 @@ jobs:
     - name: Install system dependencies
       run: |
         sudo apt-get update -y
-        sudo apt-get install -y openjdk-17-jdk unzip zip ant libncurses5-dev libncursesw5-dev libtool autoconf automake cmake build-essential zlib1g-dev pkg-config libssl-dev
+        sudo apt-get install -y openjdk-17-jdk unzip zip ant libncurses5-dev libncursesw5-dev libtool autoconf automake cmake build-essential zlib1g-dev pkg-config libssl-dev libffi-dev
     
     - name: Install Python dependencies
       run: |
@@ -34,50 +34,38 @@ jobs:
         pip install "cython>=3.0.0"
         pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
     
-    - name: Verify Python environment
+    - name: Configure Android
       run: |
-        python --version
-        pip list | grep -E "(buildozer|cython|pygame)"
-    
-    - name: Verify project files
-      run: |
-        echo "=== Project files ==="
-        ls -la
-        echo "=== buildozer.spec ==="
-        cat buildozer.spec
-        echo "=== main.py ==="
-        cat main.py
+        mkdir -p ~/.android
+        echo "count=0" > ~/.android/repositories.cfg
     
     - name: Clean previous builds
       run: |
         rm -rf .buildozer bin
     
-    - name: Build APK with verbose output
+    - name: Initialize Buildozer
       run: |
-        echo "=== Starting APK build at $(date) ==="
-        buildozer android debug --verbose 2>&1 | tee build_output.txt
-        echo "=== Build finished at $(date) ==="
+        echo "=== Initializing Buildozer environment ==="
+        buildozer android update
+    
+    - name: Build APK
+      run: |
+        echo "=== Starting APK build ==="
+        buildozer android debug 2>&1 | tee build_output.txt
+        echo "=== Build finished ==="
     
     - name: Check build results
       run: |
         echo "=== Build directory listing ==="
         ls -la
-        echo "=== bin directory contents ==="
-        if [ -d "bin" ]; then
-          ls -la bin/
-        else
-          echo "bin/ directory NOT found"
-        fi
+        echo "=== bin directory ==="
+        ls -la bin/ 2>/dev/null || echo "bin/ directory NOT found"
         echo "=== .buildozer directory ==="
-        if [ -d ".buildozer" ]; then
-          ls -la .buildozer/
-          echo "=== APK files in .buildozer ==="
-          find .buildozer -name "*.apk" 2>/dev/null || echo "No APK files found"
-        else
-          echo ".buildozer/ directory NOT found"
-        fi
-        echo "=== Last 500 lines of build output ==="
-        tail -500 build_output.txt
+        ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ directory NOT found"
+        echo "=== APK files ==="
+        find . -name "*.apk" 2>/dev/null || echo "No APK files found"
+        echo "=== Last 300 lines of build output ==="
+        tail -300 build_output.txt
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
