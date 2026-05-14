@@ -8,10 +8,15 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 120
+    timeout-minutes: 180
     
     steps:
     - uses: actions/checkout@v4
+    
+    - name: Set up swap space
+      uses: pierotofy/set-swap-space@master
+      with:
+        swap-size-gb: 8
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -20,19 +25,22 @@ jobs:
     
     - name: Install system dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y openjdk-17-jdk unzip zip ant libncurses5-dev libncursesw5-dev
+        sudo apt-get update -y
+        sudo apt-get install -y openjdk-17-jdk unzip zip ant libncurses5-dev libncursesw5-dev libtool autoconf automake cmake build-essential zlib1g-dev pkg-config libssl-dev
     
     - name: Install Python dependencies
       run: |
-        pip install --upgrade pip
-        pip install "buildozer==1.4.0" "cython>=3.0.0" "python-for-android==2023.5.21"
+        pip install --upgrade pip setuptools wheel
+        pip install "cython>=3.0.0"
+        pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
     
     - name: Build APK
       run: |
-        buildozer android debug
+        buildozer android debug -v
       env:
         P4A_RELEASE: 2023.5.21
+        P4A_ANDROID_API: 33
+        P4A_NDK_API: 21
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
