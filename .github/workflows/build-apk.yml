@@ -34,13 +34,20 @@ jobs:
         pip install "cython>=3.0.0"
         pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
     
+    - name: Accept Android licenses
+      run: |
+        yes | sdkmanager --licenses || true
+        mkdir -p ~/.android
+        echo "count=0" > ~/.android/repositories.cfg
+    
     - name: Build APK
       run: |
-        buildozer android debug -v
+        buildozer android debug -v 2>&1 | head -500
       env:
         P4A_RELEASE: 2023.5.21
         P4A_ANDROID_API: 33
         P4A_NDK_API: 21
+        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
