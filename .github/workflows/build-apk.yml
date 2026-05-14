@@ -16,7 +16,7 @@ jobs:
     - name: Set up swap space
       uses: pierotofy/set-swap-space@master
       with:
-        swap-size-gb: 8
+        swap-size-gb: 12
     
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -34,31 +34,39 @@ jobs:
         pip install "cython>=3.0.0"
         pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
     
-    - name: Accept Android licenses
+    - name: Configure Android
       run: |
         mkdir -p ~/.android
         echo "count=0" > ~/.android/repositories.cfg
+        mkdir -p /opt/android-sdk
+        export ANDROID_SDK_ROOT=/opt/android-sdk
     
-    - name: Debug - List files before build
+    - name: Build APK
       run: |
-        ls -la
-        cat buildozer.spec
+        echo "=== Starting Buildozer ==="
+        buildozer android debug 2>&1 | tee buildozer_output.txt
+        echo "=== Build completed ==="
     
-    - name: Build APK with full logs
+    - name: Check build results
       run: |
-        buildozer android debug 2>&1 | tee build_log.txt
+        echo "=== Checking build results ==="
+        if [ -d "bin" ]; then
+          echo "bin/ directory exists"
+          ls -la bin/
+        else
+          echo "bin/ directory NOT found"
+        fi
+        if [ -d ".buildozer" ]; then
+          echo ".buildozer/ directory exists"
+          ls -la .buildozer/android/platform/build-armeabi-v7a/dists/kingdomdefense/ 2>/dev/null || echo "dist directory not found"
+        else
+          echo ".buildozer/ directory NOT found"
+        fi
     
-    - name: Debug - Check build output
-      run: |
-        echo "=== Checking build output ==="
-        ls -la bin/ 2>/dev/null || echo "bin/ directory not found"
-        ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ directory not found"
-        cat build_log.txt | tail -100
-    
-    - name: Upload APK
+    - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: kingdom-defense-apk
         path: |
           bin/*.apk
-          build_log.txt
+          buildozer_output.txt
