@@ -34,19 +34,22 @@ jobs:
         pip install "cython>=3.0.0"
         pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
     
-    - name: Configure Android
+    - name: Install Android SDK components
+      run: |
+        mkdir -p ~/android-sdk
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-10406996_latest.zip -O /tmp/sdk-tools.zip
+        unzip -q /tmp/sdk-tools.zip -d ~/android-sdk
+        yes | ~/android-sdk/cmdline-tools/bin/sdkmanager "build-tools;33.0.2" "platform-tools" "platforms;android-33" --sdk_root=~/android-sdk
+    
+    - name: Configure environment
       run: |
         mkdir -p ~/.android
         echo "count=0" > ~/.android/repositories.cfg
+        echo "export ANDROID_SDK_ROOT=~/android-sdk" >> ~/.bashrc
     
     - name: Clean previous builds
       run: |
         rm -rf .buildozer bin
-    
-    - name: Initialize Buildozer
-      run: |
-        echo "=== Initializing Buildozer environment ==="
-        buildozer android update
     
     - name: Build APK
       run: |
@@ -60,8 +63,6 @@ jobs:
         ls -la
         echo "=== bin directory ==="
         ls -la bin/ 2>/dev/null || echo "bin/ directory NOT found"
-        echo "=== .buildozer directory ==="
-        ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ directory NOT found"
         echo "=== APK files ==="
         find . -name "*.apk" 2>/dev/null || echo "No APK files found"
         echo "=== Last 300 lines of build output ==="
