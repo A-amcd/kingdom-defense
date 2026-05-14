@@ -32,32 +32,52 @@ jobs:
       run: |
         pip install --upgrade pip setuptools wheel
         pip install "cython>=3.0.0"
-        pip install "buildozer==1.4.0" "python-for-android==2023.5.21" pygame==2.5.2
+        pip install "buildozer==1.4.0" "python-for-android==2023.5.21"
     
-    - name: Configure Android
+    - name: Verify Python environment
       run: |
-        mkdir -p ~/.android
-        echo "count=0" > ~/.android/repositories.cfg
-        yes | sdkmanager --licenses || true
+        python --version
+        pip list | grep -E "(buildozer|cython|pygame)"
+    
+    - name: Verify project files
+      run: |
+        echo "=== Project files ==="
+        ls -la
+        echo "=== buildozer.spec ==="
+        cat buildozer.spec
+        echo "=== main.py ==="
+        cat main.py
     
     - name: Clean previous builds
       run: |
         rm -rf .buildozer bin
     
-    - name: Build APK
+    - name: Build APK with verbose output
       run: |
-        buildozer android debug 2>&1 | tee build_output.txt
+        echo "=== Starting APK build at $(date) ==="
+        buildozer android debug --verbose 2>&1 | tee build_output.txt
+        echo "=== Build finished at $(date) ==="
     
     - name: Check build results
       run: |
         echo "=== Build directory listing ==="
         ls -la
-        echo "=== bin directory ==="
-        ls -la bin/ 2>/dev/null || echo "bin/ not found"
+        echo "=== bin directory contents ==="
+        if [ -d "bin" ]; then
+          ls -la bin/
+        else
+          echo "bin/ directory NOT found"
+        fi
         echo "=== .buildozer directory ==="
-        ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ not found"
-        echo "=== Last 300 lines of build output ==="
-        tail -300 build_output.txt
+        if [ -d ".buildozer" ]; then
+          ls -la .buildozer/
+          echo "=== APK files in .buildozer ==="
+          find .buildozer -name "*.apk" 2>/dev/null || echo "No APK files found"
+        else
+          echo ".buildozer/ directory NOT found"
+        fi
+        echo "=== Last 500 lines of build output ==="
+        tail -500 build_output.txt
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
@@ -65,4 +85,5 @@ jobs:
         name: kingdom-defense-apk
         path: |
           bin/*.apk
+          .buildozer/**/*.apk
           build_output.txt
