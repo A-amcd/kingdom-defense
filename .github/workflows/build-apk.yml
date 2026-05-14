@@ -36,21 +36,29 @@ jobs:
     
     - name: Accept Android licenses
       run: |
-        yes | sdkmanager --licenses || true
         mkdir -p ~/.android
         echo "count=0" > ~/.android/repositories.cfg
     
-    - name: Build APK
+    - name: Debug - List files before build
       run: |
-        buildozer android debug -v 2>&1 | head -500
-      env:
-        P4A_RELEASE: 2023.5.21
-        P4A_ANDROID_API: 33
-        P4A_NDK_API: 21
-        ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+        ls -la
+        cat buildozer.spec
+    
+    - name: Build APK with full logs
+      run: |
+        buildozer android debug 2>&1 | tee build_log.txt
+    
+    - name: Debug - Check build output
+      run: |
+        echo "=== Checking build output ==="
+        ls -la bin/ 2>/dev/null || echo "bin/ directory not found"
+        ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ directory not found"
+        cat build_log.txt | tail -100
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: kingdom-defense-apk
-        path: bin/*.apk
+        path: |
+          bin/*.apk
+          build_log.txt
