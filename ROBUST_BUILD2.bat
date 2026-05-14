@@ -12,17 +12,20 @@ echo   Robust Version - Handles Python 3.13
 echo ========================================
 echo.
 
+set PYTHON_EXE=C:\Users\ASUS\AppData\Local\Microsoft\WindowsApps\PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0\python.exe
+
 :: Step 1: Environment setup
 echo [1/6] Setting up environment variables...
 set JAVA_HOME=d:\12\jdk-17.0.2
 set ANDROID_HOME=d:\12\android-sdk
 set ANDROID_NDK_HOME=d:\12\android-ndk-r25b
 set ANDROID_SDK_ROOT=d:\12\android-sdk
-set PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\platform-tools;%ANDROID_HOME\cmdline-tools\latest\bin;%PATH%
+set PATH=%JAVA_HOME%\bin;%ANDROID_HOME%\platform-tools;%ANDROID_HOME%\cmdline-tools\latest\bin;%PATH%
 
 echo   JAVA_HOME: %JAVA_HOME%
 echo   ANDROID_HOME: %ANDROID_HOME%
 echo   ANDROID_NDK_HOME: %ANDROID_NDK_HOME%
+echo   PYTHON_EXE: %PYTHON_EXE%
 echo.
 
 :: Step 2: Verify Java
@@ -38,8 +41,8 @@ echo.
 
 :: Step 3: Clean and upgrade pip
 echo [3/6] Cleaning and upgrading pip...
-py -3.13 -m pip uninstall -y buildozer python-for-android sh 2>nul
-py -3.13 -m pip install --upgrade pip --no-cache-dir --no-warn-script-location
+"%PYTHON_EXE%" -m pip uninstall -y buildozer python-for-android sh 2>nul
+"%PYTHON_EXE%" -m pip install --upgrade pip --no-cache-dir --no-warn-script-location
 echo   pip upgraded.
 echo.
 
@@ -49,40 +52,40 @@ echo.
 
 :: Stage 4a: Core tools
 echo   4a. Installing core tools...
-py -3.13 -m pip install wheel setuptools --no-cache-dir --no-warn-script-location
+"%PYTHON_EXE%" -m pip install wheel setuptools --no-cache-dir --no-warn-script-location
 
 :: Stage 4b: Cython (critical!)
 echo   4b. Installing Cython (may take several minutes)...
-py -3.13 -m pip install "cython>=3.0,<4.0" --no-cache-dir --no-warn-script-location
+"%PYTHON_EXE%" -m pip install "cython>=3.0,<4.0" --no-cache-dir --no-warn-script-location
 if errorlevel 1 (
     echo   Retrying Cython installation...
     timeout /t 5
-    py -3.13 -m pip install "cython>=3.0" --force-reinstall --no-cache-dir --no-warn-script-location
+    "%PYTHON_EXE%" -m pip install "cython>=3.0" --force-reinstall --no-cache-dir --no-warn-script-location
 )
 
 :: Stage 4c: Other dependencies
 echo   4c. Installing other dependencies...
-py -3.13 -m pip install colorama appdirs jinja2 toml pexpect requests --no-cache-dir --no-warn-script-location
+"%PYTHON_EXE%" -m pip install colorama appdirs jinja2 toml pexpect requests --no-cache-dir --no-warn-script-location
 
 :: Stage 4d: buildozer
 echo   4d. Installing buildozer...
-py -3.13 -m pip install buildozer==1.4.0 --no-cache-dir --no-warn-script-location
+"%PYTHON_EXE%" -m pip install buildozer==1.4.0 --no-cache-dir --no-warn-script-location
 
 :: Stage 4e: python-for-android
 echo   4e. Installing python-for-android...
-py -3.13 -m pip install python-for-android==2023.5.21 --no-cache-dir --no-warn-script-location
+"%PYTHON_EXE%" -m pip install python-for-android==2023.5.21 --no-cache-dir --no-warn-script-location
 
 echo   Dependencies installed.
 echo.
 
 :: Step 5: Verify
 echo [5/6] Verifying buildozer...
-py -3.13 -m buildozer --version
+"%PYTHON_EXE%" -m buildozer --version
 if errorlevel 1 (
     echo.
     echo   ERROR: buildozer not working!
     echo   Trying to diagnose...
-    py -3.13 -m pip list | findstr /i buildozer
+    "%PYTHON_EXE%" -m pip list | findstr /i buildozer
     pause
     exit /b 1
 )
@@ -97,7 +100,7 @@ echo   Please wait and do not close this window.
 echo ========================================
 echo.
 
-py -3.13 -m buildozer android debug
+"%PYTHON_EXE%" -m buildozer android debug
 set BUILD_EXIT=%errorlevel%
 
 :: Results
