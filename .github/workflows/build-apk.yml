@@ -38,29 +38,34 @@ jobs:
       run: |
         mkdir -p ~/.android
         echo "count=0" > ~/.android/repositories.cfg
-        mkdir -p /opt/android-sdk
-        export ANDROID_SDK_ROOT=/opt/android-sdk
     
-    - name: Build APK
+    - name: Verify files
       run: |
-        echo "=== Starting Buildozer ==="
-        buildozer android debug 2>&1 | tee buildozer_output.txt
-        echo "=== Build completed ==="
+        echo "=== Project files ==="
+        ls -la
+        echo "=== buildozer.spec content ==="
+        cat buildozer.spec
+        echo "=== main.py content ==="
+        cat main.py
     
-    - name: Check build results
+    - name: Clean previous builds
       run: |
-        echo "=== Checking build results ==="
-        if [ -d "bin" ]; then
-          echo "bin/ directory exists"
-          ls -la bin/
-        else
-          echo "bin/ directory NOT found"
-        fi
-        if [ -d ".buildozer" ]; then
-          echo ".buildozer/ directory exists"
-          ls -la .buildozer/android/platform/build-armeabi-v7a/dists/kingdomdefense/ 2>/dev/null || echo "dist directory not found"
-        else
-          echo ".buildozer/ directory NOT found"
+        rm -rf .buildozer bin
+    
+    - name: Build APK with verbose output
+      run: |
+        echo "=== Starting APK build ==="
+        buildozer android debug --verbose 2>&1 | tee build_output.txt
+        echo "=== Build finished ==="
+    
+    - name: List output
+      run: |
+        echo "=== Listing output directories ==="
+        ls -la bin/ 2>/dev/null || echo "bin/ not found"
+        ls -la .buildozer/ 2>/dev/null || echo ".buildozer/ not found"
+        if [ -f build_output.txt ]; then
+          echo "=== Last 200 lines of build output ==="
+          tail -200 build_output.txt
         fi
     
     - name: Upload artifacts
@@ -69,4 +74,4 @@ jobs:
         name: kingdom-defense-apk
         path: |
           bin/*.apk
-          buildozer_output.txt
+          build_output.txt
